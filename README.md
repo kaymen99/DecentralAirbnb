@@ -46,7 +46,7 @@ This is a decentralized web3.0 version of the AirBnb renting website built for E
 ### Prerequisites
 
 Please install or have installed the following:
-* [nodejs and npm](https://nodejs.org/en/download/)
+* [nodejs](https://nodejs.org/en/download/) and [yarn](https://classic.yarnpkg.com/en/)
 * [MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn) Chrome extension installed in your browser
 
 ### Installation
