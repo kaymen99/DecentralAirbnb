@@ -30,11 +30,9 @@ This is a decentralized web3.0 version of the AirBnb renting website built for E
     </li>
     <li>
       <a href="#how-it-works">How it Works</a>
-
     </li>
     <li>
-      <a href="#usage">How to Use</a>
-
+      <a href="#how-to-use">How to Use</a>
     </li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#license">License</a></li>
@@ -68,19 +66,6 @@ Please install or have installed the following:
 <!-- USAGE EXAMPLES -->
 ## How to Use
 
-    
-### Scripts
-
-   
-  
- ### Testing
-
-
-   
-<p align="right">(<a href="#top">back to top</a>)</p>
-   
-### Front-end
-   
 
    
 <p align="right">(<a href="#top">back to top</a>)</p>
