@@ -91,7 +91,7 @@ The code for the UI can be found in the src folder (as in all reactjs apps)
 
 ### contracts
 
-The is built around the DecentralAirbnb.sol contract, which contains all the app logic and has the following features:
+The dapp is built around the DecentralAirbnb.sol contract, which contains all the app logic and has the following features:
 
 <h4>Core functions:</h4>
 <ul>
