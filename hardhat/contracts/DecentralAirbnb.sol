@@ -5,6 +5,9 @@ pragma solidity ^0.8.0;
 import "./PriceConverter.sol";
 
 contract DecentralAirbnb is PriceConverter {
+    //--------------------------------------------------------------------
+    // VARIABLES
+
     address public admin;
 
     uint256 public listingFee;
@@ -33,6 +36,9 @@ contract DecentralAirbnb is PriceConverter {
 
     mapping(uint256 => Booking[]) rentalBookings;
 
+    //--------------------------------------------------------------------
+    // EVENTS
+
     event NewRentalCreated(
         uint256 id,
         address owner,
@@ -55,16 +61,25 @@ contract DecentralAirbnb is PriceConverter {
         uint256 timestamp
     );
 
+    //--------------------------------------------------------------------
+    // MODIFIERS
+
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only Admin Can Call This");
         _;
     }
+
+    //--------------------------------------------------------------------
+    // CONSTRUCTOR
 
     constructor(uint256 _listingFee, address _priceFeedAddress) {
         admin = msg.sender;
         listingFee = _listingFee;
         priceFeedAddress = _priceFeedAddress;
     }
+
+    //--------------------------------------------------------------------
+    // FUNCTIONS
 
     function addRental(
         string memory _name,
@@ -153,6 +168,7 @@ contract DecentralAirbnb is PriceConverter {
 
         Booking[] memory _rentalBookings = rentalBookings[_id];
 
+        // Make sure the rental is available in the booking dates
         for (uint256 i = 0; i < _rentalBookings.length; i++) {
             if (
                 (_fromDateTimestamp >= _rentalBookings[i].fromTimestamp) &&
@@ -170,6 +186,7 @@ contract DecentralAirbnb is PriceConverter {
         return rentals;
     }
 
+    // Return the list of booking for a given rental
     function getRentalBookings(uint256 _id)
         public
         view
@@ -188,6 +205,8 @@ contract DecentralAirbnb is PriceConverter {
         return rentals[_id];
     }
 
+    // ADMIN FUNCTIONS
+
     function changeListingFee(uint256 _newFee) external onlyAdmin {
         listingFee = _newFee;
     }
@@ -200,3 +219,4 @@ contract DecentralAirbnb is PriceConverter {
         return address(this).balance;
     }
 }
+
