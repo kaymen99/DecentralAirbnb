@@ -3,7 +3,7 @@
 <!-- ABOUT THE PROJECT -->
 ## Decentral AirBnb
 
-This is a decentralized web3.0 version of the AirBnb renting website built for EVM compatible blockchains(Ethereum, Polygon,...), it was inspired by the Moralis project ["Build Web 3.0 AirBNB Clone Using web3uikit, React, Moralis and Solidity - Full-Stack Blockchain App"](https://www.youtube.com/watch?v=rj-Mb-xz1Os&t=2443s)
+This is a decentralized web3.0 version of the AirBnb renting website built for EVM compatible blockchains (Ethereum, Polygon,...), it was inspired by the Moralis project ["Build Web 3.0 AirBNB Clone Using web3uikit, React, Moralis and Solidity - Full-Stack Blockchain App"](https://www.youtube.com/watch?v=rj-Mb-xz1Os&t=2443s)
  <p align="center">
   <img alt="Dark" src="https://user-images.githubusercontent.com/83681204/168179025-3a57abf4-e18b-45c2-a759-4e43fc293f3d.png" width="100%">
 </p>
@@ -36,9 +36,8 @@ This is a decentralized web3.0 version of the AirBnb renting website built for E
        <li><a href="#user-interface">User interface</a></li>
       </ul>
     </li>
-    <li>
-      <a href="#how-to-use">How to Use</a>
-    </li>
+    <li><a href="#how-to-use">How to Use</a></li>
+    <li><a href="#future-developements">Future developements</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#license">License</a></li>
   </ol>
@@ -155,7 +154,7 @@ To start the app you have to go back to the DecentralAirbnb folder and run the c
 <p align="right">(<a href="#top">back to top</a>)</p>
 
 <!-- FUTURE DEVELOPEMENT -->
-## Furue developements
+## Future developements
 
 * Currently the only way to get the listed rantals is through getRentalList function, which is really inconvenient if a user want to filter rentals by owner, number of guests or price. So it's better to <b>create a subgraph API based on the emitted events</b> thus allowing quick access to the differnet requests.
 
