@@ -59,7 +59,7 @@ Please install or have installed the following:
 This a full stack web3 decentralized application built using Hardhat/React js, so the project is devided into 2 main parts:
 <ul>
  <li><b>Smart contract/backend side:</b></li>
- Located in the hardhat folder, it contains the blockchain developement envirenoment built using Hardhat, with all the smart contracts tests, deployement scripts and the plugins used (chainlink). 
+ Located in the hardhat folder, it contains the blockchain developement envirenment built using Hardhat, with all the smart contracts tests, deployement scripts and the plugins used (chainlink). 
   <li><b>front-end side:</b></li>
 The code for the UI can be found in the src folder (as in all reactjs apps)
 </ul>
@@ -107,7 +107,7 @@ The dapp is built around the DecentralAirbnb.sol contract, which contains all th
 </ul>
 <h4>ChainLink price feed:</h4>
 
-As ETH or MATIC is a volatile currencies, the user need to set the renting price in $ and this price is converted using chainlink price feeds when a user is excuting the booking transaction.
+As ETH or MATIC are both volatile currencies, the user need to set the renting price in $ and this price is converted using chainlink price feeds when a user is excuting the booking transaction.
 
 
 ### User interface
@@ -124,7 +124,7 @@ requirements, and also shows the location of these on a map provided by Google-m
 
 ![Capture d’écran 2022-05-12 à 23 18 10](https://user-images.githubusercontent.com/83681204/168186740-54ce2a06-8c8d-4a85-89dc-4c205ef2d33c.png)
 
-* In the Dashboard page there is a button "Add rental", which redirect the user to the AddRental page where he can list a new rental by providing a set of metadata (property name, city, latitude, longitude, description, maximum number of guests, rent price per day in $), note that it's really important to give the exact property (latitude, longitude) as they are later user to shows the location on the Google map
+* In the Dashboard page there is a button "Add rental", which redirect the user to the AddRental page where he can list a new rental by providing a set of metadata (property name, city, latitude, longitude, description, maximum number of guests, rent price per day in $), note that it's really important to give the exact property (latitude, longitude) as they are later used to show the location on the Google map
 
 ![Capture d’écran 2022-05-12 à 23 15 13](https://user-images.githubusercontent.com/83681204/168187290-846d2123-3bb0-49fb-90b1-74a96fec1b88.png)
 
@@ -142,7 +142,7 @@ After going through all the installation and setup steps, you'll need to deploy 
    ```
 This will create a config.js file and an artifacts folder and transfer them to the src folder to enable the interaction between the contract and the UI
 
-If you want to test the functionnalities of the DecentralAirbnb contract you can run:
+If you want to test the functionnalities of the DecentralAirbnb contract you can do it by running:
    ```sh
    npx hardhat test
    ```
