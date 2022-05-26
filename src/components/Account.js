@@ -58,6 +58,7 @@ function Account() {
             setInjectedProvider(null)
         }
         dispatch(disconnect())
+        setShow(false)
         navigate("/")
     }
 
