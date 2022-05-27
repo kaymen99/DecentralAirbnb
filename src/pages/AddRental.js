@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import "./AddRental.css";
 import 'bootstrap/dist/css/bootstrap.css';
 import { Link } from "react-router-dom";
-import logo from "../images/airbnbRed.png";
-import bg from "../images/add-image.jpg";
 import { ethers, utils } from "ethers"
 import { create } from "ipfs-http-client"
 import { Buffer } from "buffer";
 import { Form } from "react-bootstrap"
-import { Button } from '@mui/material';
+import { Button, CircularProgress } from '@mui/material';
 import Account from "../components/Account";
+
+import logo from "../images/airbnbRed.png";
+import bg from "../images/add-image.jpg";
 
 
 import DecentralAirbnb from "../artifacts/contracts/DecentralAirbnb.sol/DecentralAirbnb.json"
@@ -22,6 +24,9 @@ const ipfsBaseUrl = "https://ipfs.infura.io/ipfs/"
 
 const Rentals = () => {
     let navigate = useNavigate();
+
+    const data = useSelector((state) => state.blockchain.value)
+    const [loading, setLoading] = useState(false)
 
     const [image, setImage] = useState(null)
     const [imagePreview, setImagePreview] = useState(null)
@@ -53,41 +58,48 @@ const Rentals = () => {
     }
 
     const addRental = async () => {
-        if (image !== undefined && window.ethereum !== undefined) {
-            try {
-                const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-                const signer = provider.getSigner()
-                const AirbnbContract = new ethers.Contract(contractAddress, DecentralAirbnb.abi, signer);
+        if (data.network == "ganache") {
+            if (image !== undefined && window.ethereum !== undefined) {
+                try {
+                    setLoading(true)
+                    const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+                    const signer = provider.getSigner()
+                    const AirbnbContract = new ethers.Contract(contractAddress, DecentralAirbnb.abi, signer);
 
-                const listingFee = AirbnbContract.callStatic.listingFee()
+                    const listingFee = AirbnbContract.callStatic.listingFee()
 
-                const addedFile = await ipfsClient.add(image)
-                const imageURI = ipfsBaseUrl + addedFile.path
+                    const addedFile = await ipfsClient.add(image)
+                    const imageURI = ipfsBaseUrl + addedFile.path
 
-                const add_tx = await AirbnbContract.addRental(
-                    formInput.name,
-                    formInput.city,
-                    formInput.latitude,
-                    formInput.longitude,
-                    formInput.description,
-                    imageURI,
-                    formInput.numberGuests,
-                    utils.parseEther(formInput.pricePerDay, "ether"),
-                    { value: listingFee }
-                )
-                await add_tx.wait();
+                    const add_tx = await AirbnbContract.addRental(
+                        formInput.name,
+                        formInput.city,
+                        formInput.latitude,
+                        formInput.longitude,
+                        formInput.description,
+                        imageURI,
+                        formInput.numberGuests,
+                        utils.parseEther(formInput.pricePerDay, "ether"),
+                        { value: listingFee }
+                    )
+                    await add_tx.wait();
 
-                setImage(null)
+                    setImage(null)
+                    setLoading(false)
 
-                navigate("/dashboard")
+                    navigate("/dashboard")
+                }
+                catch (err) {
+                    window.alert("An error has occured")
+                    setLoading(false)
+                    console.log(err)
+                }
             }
-            catch (err) {
-                window.alert("An error has occured")
-                console.log(err)
+            else {
+                window.alert("Please Install Metamask")
             }
-        }
-        else {
-            window.alert("Please Install Metamask")
+        } else {
+            window.alert("Please Switch to the Ganache network")
         }
     }
 
@@ -165,7 +177,7 @@ const Rentals = () => {
                     <br />
                     <div style={{ textAlign: "center" }}>
                         <Button type="submit" variant="contained" color="error" onClick={addRental}>
-                            Add
+                            {loading ? <CircularProgress color="inherit" /> : "Add"}
                         </Button>
                     </div>
                     <br />
