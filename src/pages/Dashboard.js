@@ -28,6 +28,7 @@ const Dashboard = () => {
         const items = user_properties.map((r) => {
             return {
                 name: r[2],
+                city: r[3],
                 description: r[6],
                 imgUrl: r[7],
                 price: utils.formatUnits(r[9], "ether")
@@ -38,7 +39,6 @@ const Dashboard = () => {
         const myRentals = [];
         await Promise.all(rentals.map(async (r) => {
             let _rentalBookings = await AirbnbContract.getRentalBookings(Number(r[0]))
-            let today = Math.floor((new Date()).getTime() / 1000)
 
             let myBookings = _rentalBookings.filter(
                 (b) => b[0] == data.account
@@ -91,6 +91,9 @@ const Dashboard = () => {
                                         <div className="rentalInfo">
                                             <div className="rentalTitle">
                                                 {e.name}
+                                            </div>
+                                            <div className="rentalDesc">
+                                                in {e.city}
                                             </div>
                                             <div className="rentalDesc">
                                                 {e.description}
