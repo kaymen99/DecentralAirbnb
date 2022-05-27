@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "./Rentals.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { ethers, utils } from "ethers"
 import { useLocation } from "react-router";
 import logo from "../images/airbnbRed.png";
 import RentalsMap from "../components/RentalsMap";
 import SearchIcon from '@mui/icons-material/Search';
-import { Button } from "@mui/material";
+import { Button, CircularProgress } from "@mui/material";
 import Account from "../components/Account";
 
 
@@ -15,6 +16,8 @@ import { contractAddress } from "../utils/contracts-config"
 
 const Rentals = () => {
     let navigate = useNavigate();
+    const [loading, setLoading] = useState(false)
+    const data = useSelector((state) => state.blockchain.value)
 
     const { state: searchFilters } = useLocation();
     const [highLight, setHighLight] = useState();
@@ -39,7 +42,11 @@ const Rentals = () => {
             }
         })
 
-        const matchedItems = items.filter(p => p.city.toLowerCase().includes(searchFilters.destination))
+        console.log(items)
+        console.log(searchFilters.destination)
+        const matchedItems = items.filter(p => p.city.toLowerCase().includes(searchFilters.destination.toLowerCase()))
+
+        console.log(matchedItems)
         setRentalsList(matchedItems)
 
         let cords = rentals.map((r) => {
@@ -53,26 +60,39 @@ const Rentals = () => {
     }
 
     const bookProperty = async (_id, _price) => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-        const signer = provider.getSigner()
-        const AirbnbContract = new ethers.Contract(contractAddress, DecentralAirbnb.abi, signer);
+        if (data.network == "ganache") {
+            try {
+                setLoading(true)
+                const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+                const signer = provider.getSigner()
+                const AirbnbContract = new ethers.Contract(contractAddress, DecentralAirbnb.abi, signer);
 
-        const _datefrom = Math.floor(searchFilters.checkIn.getTime() / 1000)
-        const _dateto = Math.floor(searchFilters.checkOut.getTime() / 1000)
+                const _datefrom = Math.floor(searchFilters.checkIn.getTime() / 1000)
+                const _dateto = Math.floor(searchFilters.checkOut.getTime() / 1000)
 
-        const dayToSeconds = 86400
-        const bookPeriod = (_dateto - _datefrom) / dayToSeconds
-        const totalBookingPriceUSD = Number(_price) * bookPeriod
-        const totalBookingPriceETH = await AirbnbContract.convertFromUSD(utils.parseEther(totalBookingPriceUSD.toString(), "ether"))
+                const dayToSeconds = 86400
+                const bookPeriod = (_dateto - _datefrom) / dayToSeconds
+                const totalBookingPriceUSD = Number(_price) * bookPeriod
+                const totalBookingPriceETH = await AirbnbContract.convertFromUSD(utils.parseEther(totalBookingPriceUSD.toString(), "ether"))
 
-        const book_tx = await AirbnbContract.bookDates(
-            _id,
-            _datefrom,
-            _dateto,
-            { value: totalBookingPriceETH }
-        )
-        await book_tx.wait()
-        navigate("/dashboard")
+                const book_tx = await AirbnbContract.bookDates(
+                    _id,
+                    _datefrom,
+                    _dateto,
+                    { value: totalBookingPriceETH }
+                )
+                await book_tx.wait()
+
+                setLoading(false)
+                navigate("/dashboard")
+            } catch (err) {
+                setLoading(false)
+                window.alert("An error has occured, please try again")
+            }
+        } else {
+            setLoading(false)
+            window.alert("Please Switch to the Ganache network")
+        }
     }
 
     useEffect(() => {
@@ -122,10 +142,13 @@ const Rentals = () => {
                                 <>
                                     Stays Available For Your Destination
                                     <hr className="line2" />
-                                    <div className={highLight == i ? "rentalDivH " : "rentalDiv"}>
+                                    <div className={highLight == i ? "rentalDivH " : "rentalDiv"} key={i}>
                                         <img className="rentalImg" src={e.imgUrl}></img>
                                         <div className="rentalInfo">
                                             <div className="rentalTitle">{e.name}</div>
+                                            <div className="rentalDesc">
+                                                in {e.city}
+                                            </div>
                                             <div className="rentalDesc">
                                                 {e.description}
                                             </div>
@@ -133,7 +156,9 @@ const Rentals = () => {
                                                 <Button
                                                     variant="contained"
                                                     color="error"
-                                                    onClick={() => { bookProperty(e.id, e.price) }}>Stay Here</Button>
+                                                    onClick={() => { bookProperty(e.id, e.price) }}>
+                                                    {loading ? <CircularProgress color="inherit" /> : "Stay Here"}
+                                                </Button>
                                                 <div className="price">
                                                     {e.price}$
                                                 </div>
