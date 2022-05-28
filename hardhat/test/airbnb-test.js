@@ -181,6 +181,41 @@ describe("DecentralAirbnb.sol", () => {
         )).to.be.revertedWith("insuffisant amount")
 
     });
+    
+    it("it should fail by invalid booking period", async () => {
+
+      await contract.connect(user1).addRental(
+        testRentalName,
+        testRentalCity,
+        testRentalLatitude,
+        testRentalLongitude,
+        testRentaldescription,
+        testRentalImageURL,
+        testRentalGuestNumber,
+        testRentalPricePerDay,
+        { value: listingFee }
+      )
+      const rentalId = 0
+
+      // put same start and end date
+      const startDateTimestamp = Math.floor(new Date('2022.05.10').getTime() / 1000)
+      const endDateTimestamp = Math.floor(new Date('2022.05.10').getTime() / 1000)
+
+      const numberOfDays = (endDateTimestamp - startDateTimestamp) / dayToSeconds
+
+      const rentalInfo = await contract.getRentalInfo(rentalId)
+
+      const totalBookingPrice = (numberOfDays) * Number(rentalInfo[9]) / 10 ** 18
+
+      await expect
+        (contract.connect(user2).bookDates(
+          rentalId,
+          startDateTimestamp,
+          endDateTimestamp,
+          { value: ethers.utils.parseEther(totalBookingPrice.toString(), "ether") }
+        )).to.be.revertedWith("Invalid Booking Period")
+
+    });
 
     it("it should fail by already booked for given dates", async () => {
 
