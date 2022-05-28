@@ -26,19 +26,19 @@ async function main() {
   if (LOCAL_NETWORKS.includes(hre.network.name)) {
     mockAddress = await deployMock()
   }
-  console.log(mockAddress)
 
   const DecentralAirbnb = await hre.ethers.getContractFactory("DecentralAirbnb")
   const airbnbContract = await DecentralAirbnb.deploy(listingFee, mockAddress)
-
   await airbnbContract.deployed();
   console.log("Decentral Airbnb deployed to:", airbnbContract.address);
+  console.log("Network deployed to :", hre.network.name);
 
-  /* this code writes the contract addresses to a local */
-  /* file named config.js that we can use in the app */
+  /* this code writes the contract addresses and network deployed in to a local */
+  /* file named config.js that we can use in the front-end */
   fs.writeFileSync('../src/utils/contracts-config.js', `
   export const contractAddress = "${airbnbContract.address}"
   export const ownerAddress = "${airbnbContract.signer.address}"
+  export const networkDeployedTo = "${hre.network.config.chainId}"
   `)
 }
 
