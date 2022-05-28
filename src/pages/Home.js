@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import "./Home.css";
 import Account from "../components/Account";
 import { Link } from "react-router-dom";
@@ -11,8 +12,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TextField, Button, Input } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
 
+import { networkDeployedTo } from "../utils/contracts-config";
+import networksMap from "../utils/networksMap.json";
 
 const Home = () => {
+  const data = useSelector((state) => state.blockchain.value)
 
   const [info, setInfo] = useState(
     { destination: "", checkIn: new Date(), checkOut: new Date(), guests: 2 }
@@ -93,16 +97,23 @@ const Home = () => {
               }}
             />
           </div>
-          <Link to={"/rentals"} state={{
-            destination: info.destination,
-            checkIn: info.checkIn,
-            checkOut: info.checkOut,
-            guests: info.guests
-          }}>
-            <div className="searchButton">
+          {data.network === networksMap[networkDeployedTo] ? (
+            <Link to={"/rentals"} state={{
+              destination: info.destination,
+              checkIn: info.checkIn,
+              checkOut: info.checkOut,
+              guests: info.guests
+            }}>
+              <div className="searchButton">
+                <SearchIcon sx={{ color: "white" }} />
+              </div>
+            </Link>
+          ) : (
+            <div className="searchButton"
+              onClick={() => { window.alert(`Please Switch to the ${networksMap[networkDeployedTo]} network`) }}>
               <SearchIcon sx={{ color: "white" }} />
             </div>
-          </Link>
+          )}
         </div>
       </div>
       <div className="randomLocation">
