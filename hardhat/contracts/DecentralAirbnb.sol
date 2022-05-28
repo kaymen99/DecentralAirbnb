@@ -174,10 +174,10 @@ contract DecentralAirbnb is PriceConverter {
         // Make sure the rental is available in the booking dates
         for (uint256 i = 0; i < _rentalBookings.length; i++) {
             if (
-                (_fromDateTimestamp >= _rentalBookings[i].fromTimestamp) ||
-                (_fromDateTimestamp <= _rentalBookings[i].toTimestamp) ||
-                (_toDateTimestamp >= _rentalBookings[i].fromTimestamp) ||
-                (_toDateTimestamp <= _rentalBookings[i].toTimestamp)
+                ((_fromDateTimestamp >= _rentalBookings[i].fromTimestamp) &&
+                    (_fromDateTimestamp <= _rentalBookings[i].toTimestamp)) ||
+                ((_toDateTimestamp >= _rentalBookings[i].fromTimestamp) &&
+                    (_toDateTimestamp <= _rentalBookings[i].toTimestamp))
             ) {
                 return true;
             }
