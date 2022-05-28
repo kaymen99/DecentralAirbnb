@@ -136,6 +136,9 @@ contract DecentralAirbnb is PriceConverter {
 
         uint256 bookingPeriod = (_toDateTimestamp - _fromDateTimestamp) /
             1 days;
+        // can't book 0 days
+        require(bookingPeriod >= 1, "Invalid Booking Period");
+        
         uint256 _amount = convertFromUSD(_rental.pricePerDay) * bookingPeriod;
 
         require(msg.value == _amount, "insuffisant amount");
