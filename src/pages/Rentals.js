@@ -12,7 +12,9 @@ import Account from "../components/Account";
 
 
 import DecentralAirbnb from "../artifacts/contracts/DecentralAirbnb.sol/DecentralAirbnb.json"
-import { contractAddress } from "../utils/contracts-config"
+import { contractAddress, networkDeployedTo } from "../utils/contracts-config";
+import networksMap from "../utils/networksMap.json";
+
 
 const Rentals = () => {
     let navigate = useNavigate();
@@ -42,11 +44,8 @@ const Rentals = () => {
             }
         })
 
-        console.log(items)
-        console.log(searchFilters.destination)
         const matchedItems = items.filter(p => p.city.toLowerCase().includes(searchFilters.destination.toLowerCase()))
 
-        console.log(matchedItems)
         setRentalsList(matchedItems)
 
         let cords = rentals.map((r) => {
@@ -60,7 +59,7 @@ const Rentals = () => {
     }
 
     const bookProperty = async (_id, _price) => {
-        if (data.network == "ganache") {
+        if (data.network == networksMap[networkDeployedTo]) {
             try {
                 setLoading(true)
                 const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
@@ -91,7 +90,7 @@ const Rentals = () => {
             }
         } else {
             setLoading(false)
-            window.alert("Please Switch to the Ganache network")
+            window.alert(`Please Switch to the ${networksMap[networkDeployedTo]} network`)
         }
     }
 
