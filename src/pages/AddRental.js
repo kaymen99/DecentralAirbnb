@@ -16,7 +16,8 @@ import bg from "../images/add-image.jpg";
 
 
 import DecentralAirbnb from "../artifacts/contracts/DecentralAirbnb.sol/DecentralAirbnb.json"
-import { contractAddress } from "../utils/contracts-config"
+import { contractAddress, networkDeployedTo } from "../utils/contracts-config";
+import networksMap from "../utils/networksMap.json";
 
 const ipfsClient = create("https://ipfs.infura.io:5001/api/v0")
 const ipfsBaseUrl = "https://ipfs.infura.io/ipfs/"
@@ -58,7 +59,7 @@ const Rentals = () => {
     }
 
     const addRental = async () => {
-        if (data.network == "ganache") {
+        if (data.network == networksMap[networkDeployedTo]) {
             if (image !== undefined && window.ethereum !== undefined) {
                 try {
                     setLoading(true)
@@ -99,7 +100,7 @@ const Rentals = () => {
                 window.alert("Please Install Metamask")
             }
         } else {
-            window.alert("Please Switch to the Ganache network")
+            window.alert(`Please Switch to the ${networksMap[networkDeployedTo]} network`)
         }
     }
 
