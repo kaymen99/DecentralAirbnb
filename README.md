@@ -158,7 +158,7 @@ To start the app you have to go back to the DecentralAirbnb folder and run the c
 
 * Currently the only way to get the listed rantals is through getRentalList function, which is really inconvenient if a user want to filter rentals by owner, number of guests or price. So it's better to <b>create a subgraph API based on the emitted events</b> thus allowing quick access to the differnet requests.
 
-* Perfom contracts audit using known tools such as slither.
+* Perfom contracts audit using known tools such as echidna & slither.
    
 <p align="right">(<a href="#top">back to top</a>)</p>
 
