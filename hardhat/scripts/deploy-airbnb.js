@@ -1,6 +1,6 @@
-/* scripts/deploy.js */
 const hre = require("hardhat");
 const fs = require('fs');
+const { verify } = require('../utils/verify')
 
 const LOCAL_NETWORKS = ["localhost", "ganache"]
 
@@ -22,24 +22,31 @@ async function deployMock() {
 async function main() {
   /* these two lines deploy the contract to the network */
   let listingFee = hre.ethers.utils.parseEther("0.001", "ether");
-  var mockAddress;
+  var priceFeedAddress;
   if (LOCAL_NETWORKS.includes(hre.network.name)) {
-    mockAddress = await deployMock()
+    priceFeedAddress = await deployMock()
   }
+  // For deploying to polygon mainnet or testnet
+  // const priceFeedAddress = ""
 
   const DecentralAirbnb = await hre.ethers.getContractFactory("DecentralAirbnb")
-  const airbnbContract = await DecentralAirbnb.deploy(listingFee, mockAddress)
+  const airbnbContract = await DecentralAirbnb.deploy(listingFee, priceFeedAddress)
   await airbnbContract.deployed();
   console.log("Decentral Airbnb deployed to:", airbnbContract.address);
   console.log("Network deployed to :", hre.network.name);
 
-  /* this code writes the contract addresses and network deployed in to a local */
-  /* file named config.js that we can use in the front-end */
+  /* this code writes the contract addresses to a local */
+  /* file named config.js that we can use in the app */
   fs.writeFileSync('../src/utils/contracts-config.js', `
   export const contractAddress = "${airbnbContract.address}"
   export const ownerAddress = "${airbnbContract.signer.address}"
   export const networkDeployedTo = "${hre.network.config.chainId}"
   `)
+
+  if (!LOCAL_NETWORKS.includes(hre.network.name) && hre.config.etherscan.apiKey !== "") {
+    await airbnbContract.deployTransaction.wait(6)
+    await verify(airbnbContract.address, [listingFee, priceFeedAddress])
+  }
 }
 
 main()
