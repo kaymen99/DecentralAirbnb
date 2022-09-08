@@ -67,7 +67,7 @@ The code for the UI can be found in the src folder (as in all reactjs apps)
 ### Initial Setup
 1. Clone the repository and install all the required packages by running:
    ```sh
-   git clone https://github.com/Aymen1001/DecentralAirbnb.git
+   git clone https://github.com/kaymen99/DecentralAirbnb.git
    cd DecentralAirbnb
    yarn
    ```
