@@ -35,13 +35,15 @@ async function main() {
   console.log("Decentral Airbnb deployed to:", airbnbContract.address);
   console.log("Network deployed to :", hre.network.name);
 
-  /* this code writes the contract addresses to a local */
-  /* file named config.js that we can use in the app */
-  fs.writeFileSync('../src/utils/contracts-config.js', `
-  export const contractAddress = "${airbnbContract.address}"
-  export const ownerAddress = "${airbnbContract.signer.address}"
-  export const networkDeployedTo = "${hre.network.config.chainId}"
-  `)
+  /* transfer contracts addresses & ABIs to the front-end */
+  if (fs.existsSync("../src")) {
+    fse.copySync("./artifacts/contracts", "../src/artifacts")
+    fs.writeFileSync("../src/utils/contracts-config.js", `
+      export const contractAddress = "${airbnbContract.address}"
+      export const ownerAddress = "${airbnbContract.signer.address}"
+      export const networkDeployedTo = "${hre.network.config.chainId}"
+    `)
+  }
 
   if (!LOCAL_NETWORKS.includes(hre.network.name) && hre.config.etherscan.apiKey !== "") {
     await airbnbContract.deployTransaction.wait(6)
