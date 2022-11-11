@@ -62,10 +62,26 @@ contract DecentralAirbnb is PriceConverter {
     );
 
     //--------------------------------------------------------------------
+    // ERRORS
+
+    error DecentralAirbnb__OnlyAdmin();
+    error DecentralAirbnb__InvalidFee();
+    error DecentralAirbnb__InvalidRentalId();
+    error DecentralAirbnb__InvalidBookingPeriod();
+    error DecentralAirbnb__AlreadyBooked();
+    error DecentralAirbnb__InsufficientAmount();
+    error DecentralAirbnb__TransferFailed();
+
+    //--------------------------------------------------------------------
     // MODIFIERS
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Only Admin Can Call This");
+        if(msg.sender != admin) revert DecentralAirbnb__OnlyAdmin();
+        _;
+    }
+
+    modifier isRental(uint _id) {
+        if(_id >= _rentalIds) revert DecentralAirbnb__InvalidRentalId();
         _;
     }
 
@@ -90,8 +106,8 @@ contract DecentralAirbnb is PriceConverter {
         string memory _imgUrl,
         uint256 _maxGuests,
         uint256 _pricePerDay
-    ) public payable {
-        require(msg.value == listingFee, "must pay exact listing fee");
+    ) external payable {
+        if(msg.value != listingFee) revert DecentralAirbnb__InvalidFee();
         uint256 _rentalId = _rentalIds;
 
         RentalInfo memory _rental = RentalInfo(
@@ -129,29 +145,26 @@ contract DecentralAirbnb is PriceConverter {
         uint256 _id,
         uint256 _fromDateTimestamp,
         uint256 _toDateTimestamp
-    ) public payable {
-        require(_id < _rentalIds, "wrong rental id");
+    ) external payable isRental(_id) {
 
         RentalInfo memory _rental = rentals[_id];
 
         uint256 bookingPeriod = (_toDateTimestamp - _fromDateTimestamp) /
             1 days;
-        // can't book 0 days
-        require(bookingPeriod >= 1, "Invalid Booking Period");
+        // can't book less than 1 day
+        if(bookingPeriod < 1) revert DecentralAirbnb__InvalidBookingPeriod();
         
         uint256 _amount = convertFromUSD(_rental.pricePerDay) * bookingPeriod;
 
-        require(msg.value == _amount, "insuffisant amount");
-        require(
-            !checkIfBooked(_id, _fromDateTimestamp, _toDateTimestamp),
-            "already booked for given dates"
-        );
+        if(msg.value != _amount) revert DecentralAirbnb__InsufficientAmount();
+        if(checkIfBooked(_id, _fromDateTimestamp, _toDateTimestamp)) revert DecentralAirbnb__AlreadyBooked();
 
         rentalBookings[_id].push(
             Booking(msg.sender, _fromDateTimestamp, _toDateTimestamp)
         );
 
-        payable(_rental.owner).transfer(msg.value);
+        (bool success,) = payable(_rental.owner).call{value: msg.value}("");
+        if (!success) revert DecentralAirbnb__TransferFailed();
 
         emit NewBookAdded(
             _id,
@@ -167,12 +180,11 @@ contract DecentralAirbnb is PriceConverter {
         uint256 _fromDateTimestamp,
         uint256 _toDateTimestamp
     ) internal view returns (bool) {
-        require(_id < _rentalIds, "Wrong rental id");
 
         Booking[] memory _rentalBookings = rentalBookings[_id];
 
-        // Make sure the rental is available in the booking dates
-        for (uint256 i = 0; i < _rentalBookings.length; i++) {
+        // Make sure the rental is available for the booking dates
+        for (uint256 i = 0; i < _rentalBookings.length;) {
             if (
                 ((_fromDateTimestamp >= _rentalBookings[i].fromTimestamp) &&
                     (_fromDateTimestamp <= _rentalBookings[i].toTimestamp)) ||
@@ -181,30 +193,33 @@ contract DecentralAirbnb is PriceConverter {
             ) {
                 return true;
             }
+            unchecked {
+                ++i;
+            }
         }
         return false;
     }
 
-    function getRentals() public view returns (RentalInfo[] memory) {
+    function getRentals() external view returns (RentalInfo[] memory) {
         return rentals;
     }
 
     // Return the list of booking for a given rental
     function getRentalBookings(uint256 _id)
-        public
+        external
         view
+        isRental(_id)
         returns (Booking[] memory)
     {
-        require(_id < _rentalIds, "Wrong rental id");
         return rentalBookings[_id];
     }
 
     function getRentalInfo(uint256 _id)
-        public
+        external
         view
+        isRental(_id)
         returns (RentalInfo memory)
     {
-        require(_id < _rentalIds, "Wrong rental id");
         return rentals[_id];
     }
 
@@ -215,11 +230,7 @@ contract DecentralAirbnb is PriceConverter {
     }
 
     function withdrawBalance() external onlyAdmin {
-        payable(admin).transfer(address(this).balance);
-    }
-
-    function getBalance() external view returns (uint256) {
-        return address(this).balance;
+        (bool success,) = payable(admin).call{value: address(this).balance}("");
+        if (!success) revert DecentralAirbnb__TransferFailed();
     }
 }
-
