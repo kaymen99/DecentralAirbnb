@@ -1,5 +1,6 @@
 const { expect } = require("chai");
-const { ethers, waffle } = require("hardhat");
+const { ethers } = require("hardhat");
+const { getAmountInWei, getAmountFromWei } = require("../utils/helper-scripts");
 
 describe("DecentralAirbnb.sol", () => {
   let contractFactory;
@@ -10,10 +11,10 @@ describe("DecentralAirbnb.sol", () => {
   let user1;
   let user2;
   let dayToSeconds = 86400;
-  let listingFee = ethers.utils.parseEther("0.001", "ether");
+  let listingFee = getAmountInWei(0.001);
 
-  const DECIMALS = "8"
-  const INITIAL_PRICE = "200000000000"
+  const DECIMALS = "8";
+  const INITIAL_PRICE = "200000000000";
 
   const testRentalName = "SKY VIEW STUDIO CLOSE TO CENTRAL PARK";
   const testRentalCity = "NEW YORK";
@@ -22,19 +23,18 @@ describe("DecentralAirbnb.sol", () => {
   const testRentaldescription = "2 guests · 1 bedroom · 1 bed · 1 bath";
   const testRentalImageURL = "https://testipfsimageurl";
   const testRentalGuestNumber = 2;
-  const testRentalPricePerDay = ethers.utils.parseEther("0.1", "ether");
-
+  const testRentalPricePerDay = getAmountInWei(100); // 100$
 
   beforeEach(async () => {
-    [admin, user1, user2] = await ethers.getSigners()
+    [admin, user1, user2] = await ethers.getSigners();
 
     // Deploy price feed mock
-    const Mock = await hre.ethers.getContractFactory("MockV3Aggregator")
-    const mockContract = await Mock.deploy(DECIMALS, INITIAL_PRICE)
+    const Mock = await hre.ethers.getContractFactory("MockV3Aggregator");
+    const mockContract = await Mock.deploy(DECIMALS, INITIAL_PRICE);
     await mockContract.deployed();
-    mockAddress = mockContract.address
+    mockAddress = mockContract.address;
 
-    // Deploy DecentralAirbnb contract 
+    // Deploy DecentralAirbnb contract
     contractFactory = await ethers.getContractFactory("DecentralAirbnb");
     contract = await contractFactory.deploy(listingFee, mockAddress);
     adminAddress = await admin.getAddress();
@@ -50,34 +50,36 @@ describe("DecentralAirbnb.sol", () => {
       expect(fee).to.equal(listingFee);
     });
     it("should have the correct price feed address", async () => {
-      const priceFeedAddress = await contract.priceFeedAddress()
+      const priceFeedAddress = await contract.priceFeedAddress();
       expect(priceFeedAddress).to.equal(mockAddress);
     });
   });
 
   describe("Core Functions", () => {
     it("user should be able to add new rental", async () => {
+      await contract
+        .connect(user1)
+        .addRental(
+          testRentalName,
+          testRentalCity,
+          testRentalLatitude,
+          testRentalLongitude,
+          testRentaldescription,
+          testRentalImageURL,
+          testRentalGuestNumber,
+          testRentalPricePerDay,
+          { value: listingFee }
+        );
 
-      await contract.connect(user1).addRental(
-        testRentalName,
-        testRentalCity,
-        testRentalLatitude,
-        testRentalLongitude,
-        testRentaldescription,
-        testRentalImageURL,
-        testRentalGuestNumber,
-        testRentalPricePerDay,
-        { value: listingFee }
-      )
-
-      const rentalId = 0
+      const rentalId = 0;
       const rentalsList = await contract.getRentals();
-      const userRental = rentalsList[rentalId]
+      const userRental = rentalsList[rentalId];
 
-      const provider = waffle.provider
-      const contractBalance = await provider.getBalance(contract.address);
+      const contractBalance = await ethers.provider.getBalance(
+        contract.address
+      );
 
-      expect(contractBalance).to.equal(listingFee)
+      expect(contractBalance).to.equal(listingFee);
       expect(rentalsList.length).to.equal(1);
       expect(userRental[0]).to.equal(rentalId);
       expect(userRental[1]).to.equal(user1.address);
@@ -89,14 +91,31 @@ describe("DecentralAirbnb.sol", () => {
       expect(userRental[7]).to.equal(testRentalImageURL);
       expect(userRental[8]).to.equal(testRentalGuestNumber);
       expect(userRental[9]).to.equal(testRentalPricePerDay);
-
     });
 
     it("it should fail by must pay exact listing fee", async () => {
-
-      const wrongListingFee = ethers.utils.parseEther("0.0005", "ether")
+      const wrongListingFee = getAmountInWei(0.0005);
       await expect(
-        contract.connect(user1).addRental(
+        contract
+          .connect(user1)
+          .addRental(
+            testRentalName,
+            testRentalCity,
+            testRentalLatitude,
+            testRentalLongitude,
+            testRentaldescription,
+            testRentalImageURL,
+            testRentalGuestNumber,
+            testRentalPricePerDay,
+            { value: wrongListingFee }
+          )
+      ).to.be.revertedWithCustomError(contract, "DecentralAirbnb__InvalidFee");
+    });
+
+    it("user 2 should be able to rent", async () => {
+      await contract
+        .connect(user1)
+        .addRental(
           testRentalName,
           testRentalCity,
           testRentalLatitude,
@@ -105,200 +124,228 @@ describe("DecentralAirbnb.sol", () => {
           testRentalImageURL,
           testRentalGuestNumber,
           testRentalPricePerDay,
-          { value: wrongListingFee }
-        )).to.be.revertedWith("must pay exact listing fee")
-    });
+          { value: listingFee }
+        );
 
-    it("user 2 should be able to rent", async () => {
+      const rentalId = 0;
+      const startDateTimestamp = Math.floor(
+        new Date("2022.05.10").getTime() / 1000
+      );
+      const endDateTimestamp = Math.floor(
+        new Date("2022.05.25").getTime() / 1000
+      );
 
-      await contract.connect(user1).addRental(
-        testRentalName,
-        testRentalCity,
-        testRentalLatitude,
-        testRentalLongitude,
-        testRentaldescription,
-        testRentalImageURL,
-        testRentalGuestNumber,
-        testRentalPricePerDay,
-        { value: listingFee }
-      )
+      const numberOfDays =
+        (endDateTimestamp - startDateTimestamp) / dayToSeconds;
+      const rentalInfo = await contract.getRentalInfo(rentalId);
+      const totalBookingPriceUSD =
+        (numberOfDays * Number(rentalInfo[9])) / 10 ** 18;
+      const totalBookingPriceInETH = await contract.convertFromUSD(
+        getAmountInWei(totalBookingPriceUSD)
+      );
 
-      const rentalId = 0
-      const startDateTimestamp = Math.floor(new Date('2022.05.10').getTime() / 1000)
-      const endDateTimestamp = Math.floor(new Date('2022.05.25').getTime() / 1000)
+      await contract
+        .connect(user2)
+        .bookDates(rentalId, startDateTimestamp, endDateTimestamp, {
+          value: totalBookingPriceInETH,
+        });
+      const rentalBookings = await contract.getRentalBookings(rentalId);
+      const bookId = 0;
+      const user2Booking = rentalBookings[bookId];
 
-      const numberOfDays = (endDateTimestamp - startDateTimestamp) / dayToSeconds
-      const rentalInfo = await contract.getRentalInfo(rentalId)
-      const totalBookingPriceUSD = numberOfDays * Number(rentalInfo[9]) / 10 ** 18
-      const totalBookingPriceInETH = await contract.convertFromUSD(ethers.utils.parseEther(totalBookingPriceUSD.toString(), "ether"))
-
-      await contract.connect(user2).bookDates(
-        rentalId,
-        startDateTimestamp,
-        endDateTimestamp,
-        { value: totalBookingPriceInETH }
-      )
-      const rentalBookings = await contract.getRentalBookings(rentalId)
-      const bookId = 0
-      const user2Booking = rentalBookings[bookId]
-
-      expect(rentalBookings.length).to.equal(1)
-      expect(user2Booking[0]).to.equal(user2.address)
-      expect(user2Booking[1]).to.equal(startDateTimestamp)
-      expect(user2Booking[2]).to.equal(endDateTimestamp)
-
+      expect(rentalBookings.length).to.equal(1);
+      expect(user2Booking[0]).to.equal(user2.address);
+      expect(user2Booking[1]).to.equal(startDateTimestamp);
+      expect(user2Booking[2]).to.equal(endDateTimestamp);
     });
 
     it("it should fail by insuffisant amount", async () => {
+      await contract
+        .connect(user1)
+        .addRental(
+          testRentalName,
+          testRentalCity,
+          testRentalLatitude,
+          testRentalLongitude,
+          testRentaldescription,
+          testRentalImageURL,
+          testRentalGuestNumber,
+          testRentalPricePerDay,
+          { value: listingFee }
+        );
+      const rentalId = 0;
+      const startDateTimestamp = Math.floor(
+        new Date("2022.05.10").getTime() / 1000
+      );
+      const endDateTimestamp = Math.floor(
+        new Date("2022.05.25").getTime() / 1000
+      );
 
-      await contract.connect(user1).addRental(
-        testRentalName,
-        testRentalCity,
-        testRentalLatitude,
-        testRentalLongitude,
-        testRentaldescription,
-        testRentalImageURL,
-        testRentalGuestNumber,
-        testRentalPricePerDay,
-        { value: listingFee }
-      )
-      const rentalId = 0
-      const startDateTimestamp = Math.floor(new Date('2022.05.10').getTime() / 1000)
-      const endDateTimestamp = Math.floor(new Date('2022.05.25').getTime() / 1000)
-
-      const numberOfDays = (endDateTimestamp - startDateTimestamp) / dayToSeconds
-      const rentalInfo = await contract.getRentalInfo(rentalId)
+      const numberOfDays =
+        (endDateTimestamp - startDateTimestamp) / dayToSeconds;
+      const rentalInfo = await contract.getRentalInfo(rentalId);
 
       // put wrong number of days to get wrong total price
-      const totalBookingPrice = (numberOfDays - 1) * Number(rentalInfo[9]) / 10 ** 18
+      const totalBookingPrice =
+        ((numberOfDays - 1) * Number(rentalInfo[9])) / 10 ** 18;
 
-      await expect
-        (contract.connect(user2).bookDates(
-          rentalId,
-          startDateTimestamp,
-          endDateTimestamp,
-          { value: ethers.utils.parseEther(totalBookingPrice.toString(), "ether") }
-        )).to.be.revertedWith("insuffisant amount")
-
+      await expect(
+        contract
+          .connect(user2)
+          .bookDates(rentalId, startDateTimestamp, endDateTimestamp, {
+            value: getAmountInWei(totalBookingPrice),
+          })
+      ).to.be.revertedWithCustomError(
+        contract,
+        "DecentralAirbnb__InsufficientAmount"
+      );
     });
-    
-    it("it should fail by invalid booking period", async () => {
 
-      await contract.connect(user1).addRental(
-        testRentalName,
-        testRentalCity,
-        testRentalLatitude,
-        testRentalLongitude,
-        testRentaldescription,
-        testRentalImageURL,
-        testRentalGuestNumber,
-        testRentalPricePerDay,
-        { value: listingFee }
-      )
-      const rentalId = 0
+    it("it should fail by invalid booking period", async () => {
+      await contract
+        .connect(user1)
+        .addRental(
+          testRentalName,
+          testRentalCity,
+          testRentalLatitude,
+          testRentalLongitude,
+          testRentaldescription,
+          testRentalImageURL,
+          testRentalGuestNumber,
+          testRentalPricePerDay,
+          { value: listingFee }
+        );
+      const rentalId = 0;
 
       // put same start and end date
-      const startDateTimestamp = Math.floor(new Date('2022.05.10').getTime() / 1000)
-      const endDateTimestamp = Math.floor(new Date('2022.05.10').getTime() / 1000)
+      const startDateTimestamp = Math.floor(
+        new Date("2022.05.10").getTime() / 1000
+      );
+      const endDateTimestamp = Math.floor(
+        new Date("2022.05.10").getTime() / 1000
+      );
 
-      const numberOfDays = (endDateTimestamp - startDateTimestamp) / dayToSeconds
+      const numberOfDays =
+        (endDateTimestamp - startDateTimestamp) / dayToSeconds;
 
-      const rentalInfo = await contract.getRentalInfo(rentalId)
+      const rentalInfo = await contract.getRentalInfo(rentalId);
 
-      const totalBookingPrice = (numberOfDays) * Number(rentalInfo[9]) / 10 ** 18
+      const totalBookingPrice =
+        (numberOfDays * Number(rentalInfo[9])) / 10 ** 18;
 
-      await expect
-        (contract.connect(user2).bookDates(
-          rentalId,
-          startDateTimestamp,
-          endDateTimestamp,
-          { value: ethers.utils.parseEther(totalBookingPrice.toString(), "ether") }
-        )).to.be.revertedWith("Invalid Booking Period")
-
+      await expect(
+        contract
+          .connect(user2)
+          .bookDates(rentalId, startDateTimestamp, endDateTimestamp, {
+            value: getAmountInWei(totalBookingPrice),
+          })
+      ).to.be.revertedWithCustomError(
+        contract,
+        "DecentralAirbnb__InvalidBookingPeriod"
+      );
     });
 
     it("it should fail by already booked for given dates", async () => {
+      await contract
+        .connect(user1)
+        .addRental(
+          testRentalName,
+          testRentalCity,
+          testRentalLatitude,
+          testRentalLongitude,
+          testRentaldescription,
+          testRentalImageURL,
+          testRentalGuestNumber,
+          testRentalPricePerDay,
+          { value: listingFee }
+        );
 
-      await contract.connect(user1).addRental(
-        testRentalName,
-        testRentalCity,
-        testRentalLatitude,
-        testRentalLongitude,
-        testRentaldescription,
-        testRentalImageURL,
-        testRentalGuestNumber,
-        testRentalPricePerDay,
-        { value: listingFee }
-      )
+      const rentalId = 0;
+      const startDateTimestamp = Math.floor(
+        new Date("2022.05.10").getTime() / 1000
+      );
+      const endDateTimestamp = Math.floor(
+        new Date("2022.05.25").getTime() / 1000
+      );
 
-      const rentalId = 0
-      const startDateTimestamp = Math.floor(new Date('2022.05.10').getTime() / 1000)
-      const endDateTimestamp = Math.floor(new Date('2022.05.25').getTime() / 1000)
+      const numberOfDays =
+        (endDateTimestamp - startDateTimestamp) / dayToSeconds;
+      const rentalInfo = await contract.getRentalInfo(rentalId);
+      const totalBookingPriceUSD =
+        (numberOfDays * Number(rentalInfo[9])) / 10 ** 18;
+      const totalBookingPriceInETH = await contract.convertFromUSD(
+        getAmountInWei(totalBookingPriceUSD)
+      );
 
-      const numberOfDays = (endDateTimestamp - startDateTimestamp) / dayToSeconds
-      const rentalInfo = await contract.getRentalInfo(rentalId)
-      const totalBookingPriceUSD = numberOfDays * Number(rentalInfo[9]) / 10 ** 18
-      const totalBookingPriceInETH = await contract.convertFromUSD(ethers.utils.parseEther(totalBookingPriceUSD.toString(), "ether"))
+      await contract
+        .connect(user2)
+        .bookDates(rentalId, startDateTimestamp, endDateTimestamp, {
+          value: totalBookingPriceInETH,
+        });
+      const user3 = (await ethers.getSigners())[3];
 
-      await contract.connect(user2).bookDates(
-        rentalId,
-        startDateTimestamp,
-        endDateTimestamp,
-        { value: totalBookingPriceInETH }
-      )
-      const user3 = (await ethers.getSigners())[3]
+      const startDateTimestamp_2 = Math.floor(
+        new Date("2022.05.12").getTime() / 1000
+      );
+      const endDateTimestamp_2 = Math.floor(
+        new Date("2022.05.14").getTime() / 1000
+      );
 
-      const startDateTimestamp_2 = Math.floor(new Date('2022.05.12').getTime() / 1000)
-      const endDateTimestamp_2 = Math.floor(new Date('2022.05.14').getTime() / 1000)
-
-      const numberOfDays_2 = (endDateTimestamp_2 - startDateTimestamp_2) / dayToSeconds
-      const totalBookingPriceUSD_2 = numberOfDays_2 * Number(rentalInfo[9]) / 10 ** 18
-      const totalBookingPriceInETH_2 = await contract.convertFromUSD(ethers.utils.parseEther(totalBookingPriceUSD_2.toString(), "ether"))
+      const numberOfDays_2 =
+        (endDateTimestamp_2 - startDateTimestamp_2) / dayToSeconds;
+      const totalBookingPriceUSD_2 =
+        (numberOfDays_2 * Number(rentalInfo[9])) / 10 ** 18;
+      const totalBookingPriceInETH_2 = await contract.convertFromUSD(
+        getAmountInWei(totalBookingPriceUSD_2)
+      );
 
       await expect(
-        contract.connect(user3).bookDates(
-          rentalId,
-          startDateTimestamp_2,
-          endDateTimestamp_2,
-          { value: totalBookingPriceInETH_2 })
-      ).to.be.revertedWith("already booked for given dates")
+        contract
+          .connect(user3)
+          .bookDates(rentalId, startDateTimestamp_2, endDateTimestamp_2, {
+            value: totalBookingPriceInETH_2,
+          })
+      ).to.be.revertedWithCustomError(
+        contract,
+        "DecentralAirbnb__AlreadyBooked"
+      );
     });
   });
 
-  describe('Admin Functions', () => {
+  describe("Admin Functions", () => {
     it("it should allow admin to change listing fee", async () => {
-      const newListingFee = ethers.utils.parseEther("0.005", "ether")
-      await contract.connect(admin).changeListingFee(newListingFee)
-      const fee = await contract.listingFee()
+      const newListingFee = getAmountInWei(0.005);
+      await contract.connect(admin).changeListingFee(newListingFee);
+      const fee = await contract.listingFee();
 
-      expect(fee).to.equal(newListingFee)
+      expect(fee).to.equal(newListingFee);
     });
 
     it("it should transfer contract balance to admin", async () => {
-
-      await contract.connect(user1).addRental(
-        testRentalName,
-        testRentalCity,
-        testRentalLatitude,
-        testRentalLongitude,
-        testRentaldescription,
-        testRentalImageURL,
-        testRentalGuestNumber,
-        testRentalPricePerDay,
-        { value: listingFee }
-      )
-      const previousAdminBalance = await admin.getBalance()
-      await contract.connect(admin).withdrawBalance()
-      const finalAdminBalance = await admin.getBalance()
-      const expectedBalance = Number(previousAdminBalance) / 10 ** 18 + Number(listingFee) / 10 ** 18
+      await contract
+        .connect(user1)
+        .addRental(
+          testRentalName,
+          testRentalCity,
+          testRentalLatitude,
+          testRentalLongitude,
+          testRentaldescription,
+          testRentalImageURL,
+          testRentalGuestNumber,
+          testRentalPricePerDay,
+          { value: listingFee }
+        );
+      const previousAdminBalance = await admin.getBalance();
+      await contract.connect(admin).withdrawBalance();
+      const finalAdminBalance = await admin.getBalance();
+      const expectedBalance =
+        Number(previousAdminBalance) / 10 ** 18 + Number(listingFee) / 10 ** 18;
 
       // use only 3 decimals because the withdraw transaction cost some gas
       // so admin previous balance is not the same
       expect(
-        parseFloat(Number(ethers.utils.formatUnits(finalAdminBalance, "ether"))).toFixed(3)
-      ).to.equal(
-        parseFloat(Number(expectedBalance)).toFixed(3)
-      )
+        parseFloat(getAmountFromWei(finalAdminBalance)).toFixed(3)
+      ).to.equal(parseFloat(Number(expectedBalance)).toFixed(3));
     });
-  })
+  });
 });
