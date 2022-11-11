@@ -71,13 +71,16 @@ The code for the UI can be found in the src folder (as in all reactjs apps)
    cd DecentralAirbnb
    yarn
    ```
-2. Start the ganache network and export the private key of the first account to the hardhat.config.js file in the hardhat folder, it will be used as admin for deploying the Airbnb contract:
+2. Start the ganache network and export the private key of the first account to the .env file in the hardhat folder, it will be used as admin for deploying the Airbnb contract:
    ```sh
-   ganache: {
-      url: "http://127.0.0.1:7545",
-      accounts: ["ganahce-private-key"]
-    }
+   ETHERSCAN_API_KEY="your etherscan api key"
+   POLYGON_RPC_URL="Your polygon RPC url from alchemy or infura"
+   MUMBAI_RPC_URL="Your mumbai RPC url from alchemy or infura"
+   PRIVATE_KEY="ganahce-private-key"
    ```
+   
+   * <b>Note :</b> I used the ganache network just for testing, if you want to deploy directly to a real/test network you'll need to add your real private key in the .env file.
+   
 3. Get the Google maps api-key (it's free) [here](https://developers.google.com/maps/documentation/embed/get-api-key) and add it to the src/component/RentalsMap.js file:
    ```sh
     export default GoogleApiWrapper({
