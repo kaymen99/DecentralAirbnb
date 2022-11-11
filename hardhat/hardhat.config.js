@@ -1,6 +1,6 @@
 require("dotenv").config();
-require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
+require("@nomicfoundation/hardhat-chai-matchers");
 require("hardhat-gas-reporter");
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -20,8 +20,8 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 
-const POLYGON_RPC_URL = process.env.POLYGON_RPC_URL
-const MUMBAI_RPC_URL = process.env.MUMBAI_RPC_URL
+const POLYGON_RPC_URL = process.env.POLYGON_RPC_URL;
+const MUMBAI_RPC_URL = process.env.MUMBAI_RPC_URL;
 
 module.exports = {
   solidity: {
@@ -47,15 +47,14 @@ module.exports = {
     ],
   },
   networks: {
-    defaultNetwork: "hardhat",
     hardhat: {
-      chainId: 31337
+      chainId: 31337,
     },
     ganache: {
       chainId: 1337,
       url: "http://127.0.0.1:7545",
-      accounts: ["ganache-private-key"]
-    }
+      accounts: [process.env.PRIVATE_KEY],
+    },
     // mumbai: {
     //   url: MUMBAI_RPC_URL,
     //   accounts: [process.env.PRIVATE_KEY],
@@ -68,10 +67,9 @@ module.exports = {
     // }
   },
   paths: {
-    artifacts: "./artifacts"
+    artifacts: "./artifacts",
   },
   etherscan: {
     apikey: process.env.ETHERSCAN_API_KEY,
-  }
+  },
 };
-
