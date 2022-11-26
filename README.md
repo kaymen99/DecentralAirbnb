@@ -5,8 +5,9 @@
 
 This is a decentralized web3.0 version of the AirBnb renting website built for EVM compatible blockchains (Ethereum, Polygon,...), it was inspired by the Moralis project ["Build Web 3.0 AirBNB Clone Using web3uikit, React, Moralis and Solidity - Full-Stack Blockchain App"](https://www.youtube.com/watch?v=rj-Mb-xz1Os&t=2443s)
  <p align="center">
-  <img alt="Dark" src="https://user-images.githubusercontent.com/83681204/168179025-3a57abf4-e18b-45c2-a759-4e43fc293f3d.png" width="100%">
+  <img alt="Dark" src="https://user-images.githubusercontent.com/83681204/204110853-5fa8dfe6-ea55-4eff-b818-4e69859beb5f.png" width="100%">
 </p>
+
  
 ### Built With
 
@@ -81,7 +82,12 @@ The code for the UI can be found in the src folder (as in all reactjs apps)
    
    * <b>Note :</b> I used the ganache network just for testing, if you want to deploy directly to a real/test network you'll need to add your real private key in the .env file.
    
-3. Get the Google maps api-key (it's free) [here](https://developers.google.com/maps/documentation/embed/get-api-key) and add it to the src/component/RentalsMap.js file:
+3. As infura recently removed its free IPFS gateway i used `web3.storage` api for storing rentals images into IPFS, this api is as simple as infura it requires the creation of a free account and a new api token which you can do [here](https://web3.storage), when you finish add your api token into the `src/utils/StoreContent.js` file:
+   ```js
+    const web3storage_key = "YOUR-WEB3.STORAGE-API-TOKEN";
+   ```
+   
+4. Get the Google maps api-key (it's free) [here](https://developers.google.com/maps/documentation/embed/get-api-key) and add it to the src/component/RentalsMap.js file:
    ```sh
     export default GoogleApiWrapper({
           apiKey: "api_key",
