@@ -20,6 +20,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 
+const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY;
 const POLYGON_RPC_URL = process.env.POLYGON_RPC_URL;
 const MUMBAI_RPC_URL = process.env.MUMBAI_RPC_URL;
 
@@ -31,16 +32,7 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 20,
-          },
-        },
-      },
-      {
-        version: "0.6.6",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 20,
+            runs: 200,
           },
         },
       },
@@ -62,14 +54,17 @@ module.exports = {
     // },
     // polygon: {
     //   url: POLYGON_RPC_URL,
-    //   accounts: [process.env.PRIVATE_KEY]
+    //   accounts: [process.env.PRIVATE_KEY],
     //   chainId: 137,
     // }
   },
   paths: {
     artifacts: "./artifacts",
   },
+  gasReporter: {
+    enabled: true,
+  },
   etherscan: {
-    apikey: process.env.ETHERSCAN_API_KEY,
+    apiKey: POLYGONSCAN_API_KEY,
   },
 };
