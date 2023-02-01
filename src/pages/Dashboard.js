@@ -7,7 +7,7 @@ import logo from "../assets/images/airbnbRed.png";
 import { useSelector } from "react-redux";
 import Connect from "../components/Connect";
 
-import DecentralAirbnb from "../artifacts/contracts/DecentralAirbnb.sol/DecentralAirbnb.json";
+import DecentralAirbnb from "../artifacts/DecentralAirbnb.sol/DecentralAirbnb.json";
 import { contractAddress } from "../utils/contracts-config";
 
 const Dashboard = () => {
