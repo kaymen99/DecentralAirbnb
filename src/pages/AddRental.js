@@ -13,7 +13,7 @@ import Connect from "../components/Connect";
 import logo from "../assets/images/airbnbRed.png";
 import bg from "../assets/images/add-image.jpg";
 
-import DecentralAirbnb from "../artifacts/contracts/DecentralAirbnb.sol/DecentralAirbnb.json";
+import DecentralAirbnb from "../artifacts/DecentralAirbnb.sol/DecentralAirbnb.json";
 import { contractAddress, networkDeployedTo } from "../utils/contracts-config";
 import networksMap from "../utils/networksMap.json";
 
