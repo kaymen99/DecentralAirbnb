@@ -9,7 +9,7 @@ import RentalsMap from "../components/RentalsMap";
 import { Button, CircularProgress } from "@mui/material";
 import Connect from "../components/Connect";
 
-import DecentralAirbnb from "../artifacts/contracts/DecentralAirbnb.sol/DecentralAirbnb.json";
+import DecentralAirbnb from "../artifacts/DecentralAirbnb.sol/DecentralAirbnb.json";
 import { contractAddress, networkDeployedTo } from "../utils/contracts-config";
 import networksMap from "../utils/networksMap.json";
 
